@@ -127,6 +127,12 @@
       />
     </div>
     <div class="row q-pt-sm justify-center">
+      <div class="col-2 text-center">税级 {{ taxInfo.level }}</div>
+      <div class="col-2 text-center">
+        税率 {{ taxInfo.rate == '-' ? taxInfo.rate : `${taxInfo.rate * 100}%` }}
+      </div>
+    </div>
+    <div class="row q-pt-sm justify-center">
       <div class="col-12 col-md-8">
         <q-table
           dense
@@ -237,6 +243,7 @@ export default defineComponent({
         value: key as unknown as buchonggongjijinKeyType,
       });
     }
+    const taxInfo = reactive({ level: '-', rate: '-' });
     const form = reactive({
       income: 0,
       times: 12,
@@ -257,7 +264,7 @@ export default defineComponent({
       失业保险金: 0,
       基本住房公积金: 0,
       补充住房公积金: 0,
-      个人所得税: 0,
+      年度个人所得税: 0,
     });
     watch(
       () => form.income,
@@ -373,13 +380,17 @@ export default defineComponent({
         totalExcludedPerMonth * form.times +
         form.jiangjinBase * form.jiangjinMonths;
       if (totalIncomeWithBonusForTax <= 0) {
-        tax['个人所得税'] = 0;
+        tax['年度个人所得税'] = 0;
+        taxInfo.level = '-';
+        taxInfo.rate = '-';
         return;
       }
-      for (const stair of taxTable) {
-        const [banner, rate, quickSub] = stair;
+      for (const [index, stair] of taxTable.entries()) {
+        let [banner, rate, quickSub] = stair;
         if (totalIncomeWithBonusForTax <= banner) {
-          tax['个人所得税'] = totalIncomeWithBonusForTax * rate - quickSub;
+          tax['年度个人所得税'] = totalIncomeWithBonusForTax * rate - quickSub;
+          taxInfo.level = (index + 1).toString();
+          taxInfo.rate = rate.toString();
           break;
         }
       }
@@ -390,11 +401,11 @@ export default defineComponent({
       const columns = [];
       columns.push({
         name: '税后月收入',
-        value: (totalIncome.value - tax['个人所得税']) / 12,
+        value: (totalIncome.value - tax['年度个人所得税']) / 12,
       });
       columns.push({
         name: '税后年收入',
-        value: totalIncome.value - tax['个人所得税'],
+        value: totalIncome.value - tax['年度个人所得税'],
       });
       for (key in tax) {
         columns.push({
@@ -413,6 +424,7 @@ export default defineComponent({
       timesOptions,
       taxForTable,
       tax,
+      taxInfo,
       shebaoMethodOptions,
       gongjijinMethodOptions,
       gongjijinPercentOptions,
