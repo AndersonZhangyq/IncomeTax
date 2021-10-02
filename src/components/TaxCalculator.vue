@@ -399,13 +399,15 @@ export default defineComponent({
       calculate();
       let key: keyof typeof tax;
       const columns = [];
+      const incomWithBonus =
+        totalIncome.value + form.jiangjinBase * form.jiangjinMonths;
       columns.push({
         name: '税后月收入',
-        value: (totalIncome.value - tax['年度个人所得税']) / 12,
+        value: (incomWithBonus - tax['年度个人所得税']) / 12,
       });
       columns.push({
         name: '税后年收入',
-        value: totalIncome.value - tax['年度个人所得税'],
+        value: incomWithBonus - tax['年度个人所得税'],
       });
       for (key in tax) {
         columns.push({
