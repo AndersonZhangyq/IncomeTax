@@ -88,7 +88,7 @@
       <q-input
         class="col-12 col-md-4"
         outlined
-        v-model="form.gongjijinBase"
+        v-model="form.buchonggongjijinBase"
         label="补充公积金缴纳基数"
         type="number"
         :readonly="form.buchonggongjijinMethod.value != CUSTOM"
@@ -250,7 +250,7 @@ export default defineComponent({
       shebaoMethod: ref(shebaoMethodOptions[0]),
       shebaoBase: 0,
       gongjijinMethod: ref(gongjijinMethodOptions[0]),
-      gongjijinPercent: ref(gongjijinPercentOptions[0]),
+      gongjijinPercent: ref(gongjijinPercentOptions[2]),
       gongjijinBase: 0,
       buchonggongjijinMethod: ref(gongjijinMethodOptions[0]),
       buchonggongjijinPercent: ref(buchonggongjijinPercentOptions[0]),
@@ -280,6 +280,12 @@ export default defineComponent({
           form.gongjijinMethod.value == methodType.Income
         ) {
           form.gongjijinBase = value;
+        }
+        if (
+          form.buchonggongjijinMethod.value == methodType.Custom ||
+          form.buchonggongjijinMethod.value == methodType.Income
+        ) {
+          form.buchonggongjijinBase = value;
         }
         form.jiangjinBase = value;
       }
@@ -337,7 +343,7 @@ export default defineComponent({
     };
     const calculate = () => {
       // 调整社保基数到给定区间
-      form.shebaoBase = Math.max(
+      const shebaoBase = Math.max(
         Math.min(form.shebaoBase, info.shebao.up),
         info.shebao.bottom
       );
@@ -360,7 +366,6 @@ export default defineComponent({
       );
 
       // 计算五险一金
-      const shebaoBase = form.shebaoBase;
       tax['养老保险金'] = shebaoBase * info.shebao.percent.yanglao;
       tax['医疗保险金'] = shebaoBase * info.shebao.percent.yiliao;
       tax['失业保险金'] = shebaoBase * info.shebao.percent.shiye;
