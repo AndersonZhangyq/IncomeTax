@@ -39,7 +39,6 @@
         label="社保缴纳基数"
         type="number"
         :readonly="form.shebaoMethod.value != CUSTOM"
-        ref="shebaoBaseInput"
       />
     </div>
     <div class="row q-pt-sm q-col-gutter-sm">
@@ -165,7 +164,6 @@
 
 <script lang="ts">
 import { reactive, computed, defineComponent, ref, watch } from 'vue';
-import { QSelect } from 'quasar';
 
 const info = {
   shebao: {
@@ -213,9 +211,9 @@ type buchonggongjijinKeyType = keyof typeof info.buchonggongjijin;
 export default defineComponent({
   setup() {
     const CUSTOM = methodType.Custom;
-    const shebaoBaseInput = ref<QSelect | null>();
-    const totalIncome = computed(() => form.income * form.times);
+    const totalSalary = computed(() => form.income * form.times);
     const totalBonus = computed(() => form.jiangjinBase * form.jiangjinMonths);
+    const totalIncome = computed(() => totalBonus.value + totalSalary.value);
     const timesOptions: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const shebaoMethodOptions = [
       { label: '按工资', value: methodType.Income },
@@ -381,7 +379,7 @@ export default defineComponent({
 
       // 计算待缴金额
       const totalIncomeWithBonusForTax =
-        totalIncome.value -
+        totalSalary.value -
         totalExcludedPerMonth * form.times +
         form.jiangjinBase * form.jiangjinMonths;
       if (totalIncomeWithBonusForTax <= 0) {
@@ -404,15 +402,17 @@ export default defineComponent({
       calculate();
       let key: keyof typeof tax;
       const columns = [];
-      const incomWithBonus =
-        totalIncome.value + form.jiangjinBase * form.jiangjinMonths;
       columns.push({
-        name: '税后月收入',
-        value: (incomWithBonus - tax['年度个人所得税']) / 12,
+        name: '税前年收入',
+        value: totalIncome.value,
       });
       columns.push({
         name: '税后年收入',
-        value: incomWithBonus - tax['年度个人所得税'],
+        value: totalIncome.value - tax['年度个人所得税'],
+      });
+      columns.push({
+        name: '税后月收入',
+        value: (totalIncome.value - tax['年度个人所得税']) / 12,
       });
       for (key in tax) {
         columns.push({
@@ -424,10 +424,10 @@ export default defineComponent({
     });
     return {
       CUSTOM,
-      shebaoBaseInput,
       form,
-      totalIncome,
+      totalSalary,
       totalBonus,
+      totalIncome,
       timesOptions,
       taxForTable,
       tax,
