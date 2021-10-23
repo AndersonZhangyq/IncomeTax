@@ -18,7 +18,7 @@
       <q-input
         class="col-12 col-md-4"
         outlined
-        v-model="totalIncome"
+        v-model="totalSalary"
         label="累计工资"
         readonly
       />
