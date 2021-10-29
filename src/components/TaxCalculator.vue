@@ -125,6 +125,29 @@
         readonly
       />
     </div>
+    <div class="row q-pt-sm q-col-gutter-sm">
+      <q-input
+        class="col-12 col-md-4"
+        outlined
+        v-model.number="form.hoursPerDay"
+        type="number"
+        label="每天工作时长"
+      />
+      <q-input
+        class="col-12 col-md-4"
+        outlined
+        v-model.number="form.daysPerWeek"
+        type="number"
+        label="每周工作天数"
+      />
+      <q-input
+        class="col-12 col-md-4"
+        outlined
+        v-model="hoursPerWeek"
+        label="每周工作小时数"
+        readonly
+      />
+    </div>
     <div class="row q-pt-sm justify-center">
       <div class="col-2 text-center">税级 {{ taxInfo.level }}</div>
       <div class="col-2 text-center">
@@ -255,6 +278,8 @@ export default defineComponent({
       buchonggongjijinBase: 0,
       jiangjinMonths: 0,
       jiangjinBase: 0,
+      hoursPerDay: 8,
+      daysPerWeek: 5,
     });
     const tax = reactive({
       养老保险金: 0,
@@ -414,6 +439,10 @@ export default defineComponent({
         name: '税后月收入',
         value: (totalIncome.value - tax['年度个人所得税']) / 12,
       });
+      columns.push({
+        name: '税后时薪',
+        value: (totalIncome.value - tax['年度个人所得税']) / 12 / hoursPerWeek.value / 4
+      })
       for (key in tax) {
         columns.push({
           name: key,
@@ -422,6 +451,9 @@ export default defineComponent({
       }
       return columns;
     });
+    const hoursPerWeek = computed(() => {
+      return form.hoursPerDay * form.daysPerWeek
+    })
     return {
       CUSTOM,
       form,
@@ -430,6 +462,7 @@ export default defineComponent({
       totalIncome,
       timesOptions,
       taxForTable,
+      hoursPerWeek,
       tax,
       taxInfo,
       shebaoMethodOptions,
