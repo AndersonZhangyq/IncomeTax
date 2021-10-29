@@ -426,6 +426,12 @@ export default defineComponent({
     const taxForTable = computed(() => {
       calculate();
       let key: keyof typeof tax;
+      const socialEnsuranceAndHouseFund =
+        (tax['养老保险金'] +
+        tax['医疗保险金'] +
+        tax['失业保险金'] +
+        tax['基本住房公积金'] +
+        tax['补充住房公积金']) * form.times;
       const columns = [];
       columns.push({
         name: '税前年收入',
@@ -433,15 +439,15 @@ export default defineComponent({
       });
       columns.push({
         name: '税后年收入',
-        value: totalIncome.value - tax['年度个人所得税'],
+        value: totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund,
       });
       columns.push({
         name: '税后月收入',
-        value: (totalIncome.value - tax['年度个人所得税']) / 12,
+        value: (totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12,
       });
       columns.push({
         name: '税后时薪',
-        value: (totalIncome.value - tax['年度个人所得税']) / 12 / hoursPerWeek.value / 4
+        value: (totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12 / hoursPerWeek.value / 4
       })
       for (key in tax) {
         columns.push({
