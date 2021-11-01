@@ -246,8 +246,6 @@ export default defineComponent({
     ];
     const gongjijinMethodOptions = [
       { label: '按工资', value: methodType.Income },
-      { label: '当地最低', value: methodType.Lowest },
-      { label: '当地最高', value: methodType.Highest },
       { label: '自定义', value: methodType.Custom },
     ];
     const gongjijinPercentOptions = [];
@@ -334,13 +332,6 @@ export default defineComponent({
         case methodType.Income:
           form.gongjijinBase = form.income;
           break;
-        case methodType.Lowest:
-          form.gongjijinBase =
-            info.gongjijin[form.gongjijinPercent.value].bottom;
-          break;
-        case methodType.Highest:
-          form.gongjijinBase = info.gongjijin[form.gongjijinPercent.value].up;
-          break;
         case methodType.Custom:
           form.gongjijinBase = form.income;
           break;
@@ -350,14 +341,6 @@ export default defineComponent({
       switch (form.buchonggongjijinMethod.value) {
         case methodType.Income:
           form.buchonggongjijinBase = form.income;
-          break;
-        case methodType.Lowest:
-          form.buchonggongjijinBase =
-            info.buchonggongjijin[form.buchonggongjijinPercent.value].bottom;
-          break;
-        case methodType.Highest:
-          form.buchonggongjijinBase =
-            info.buchonggongjijin[form.buchonggongjijinPercent.value].up;
           break;
         case methodType.Custom:
           form.buchonggongjijinBase = form.income;
@@ -440,6 +423,10 @@ export default defineComponent({
       columns.push({
         name: '税后年收入',
         value: totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund,
+      });
+      columns.push({
+        name: '年度公积金总额（个人+公司）',
+        value: 2 * 12 * (tax['基本住房公积金'] + tax['补充住房公积金']),
       });
       columns.push({
         name: '税后月收入',
