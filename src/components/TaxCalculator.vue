@@ -148,6 +148,15 @@
         readonly
       />
     </div>
+    <div class="row q-pt-sm q-col-gutter-sm">
+      <q-input
+        class="col-12 col-md-4"
+        outlined
+        v-model.number="form.other"
+        type="number"
+        label="其他收入"
+      />
+    </div>
     <div class="row q-pt-sm justify-center">
       <div class="col-2 text-center">税级 {{ taxInfo.level }}</div>
       <div class="col-2 text-center">
@@ -278,6 +287,7 @@ export default defineComponent({
       jiangjinBase: 0,
       hoursPerDay: 8,
       daysPerWeek: 5,
+      other: 0
     });
     const tax = reactive({
       养老保险金: 0,
@@ -389,7 +399,7 @@ export default defineComponent({
       const totalIncomeWithBonusForTax =
         totalSalary.value -
         totalExcludedPerMonth * form.times +
-        form.jiangjinBase * form.jiangjinMonths;
+        form.jiangjinBase * form.jiangjinMonths + form.other * 1;
       if (totalIncomeWithBonusForTax <= 0) {
         tax['年度个人所得税'] = 0;
         taxInfo.level = '-';
@@ -416,13 +426,14 @@ export default defineComponent({
         tax['基本住房公积金'] +
         tax['补充住房公积金']) * form.times;
       const columns = [];
+      const beforeTaxIncome = totalIncome.value + form.other * 1;
       columns.push({
         name: '税前年收入',
-        value: totalIncome.value,
+        value: beforeTaxIncome,
       });
       columns.push({
         name: '税后年收入',
-        value: totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund,
+        value: beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund,
       });
       columns.push({
         name: '年度公积金总额（个人+公司）',
@@ -430,11 +441,11 @@ export default defineComponent({
       });
       columns.push({
         name: '税后月收入',
-        value: (totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12,
+        value: (beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12,
       });
       columns.push({
         name: '税后时薪',
-        value: (totalIncome.value - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12 / hoursPerWeek.value / 4
+        value: (beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12 / hoursPerWeek.value / 4
       })
       for (key in tax) {
         columns.push({
