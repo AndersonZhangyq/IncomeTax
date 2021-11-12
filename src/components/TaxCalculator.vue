@@ -301,19 +301,16 @@ export default defineComponent({
       () => form.income,
       (value: number) => {
         if (
-          form.shebaoMethod.value == methodType.Custom ||
           form.shebaoMethod.value == methodType.Income
         ) {
           form.shebaoBase = value;
         }
         if (
-          form.gongjijinMethod.value == methodType.Custom ||
           form.gongjijinMethod.value == methodType.Income
         ) {
           form.gongjijinBase = value;
         }
         if (
-          form.buchonggongjijinMethod.value == methodType.Custom ||
           form.buchonggongjijinMethod.value == methodType.Income
         ) {
           form.buchonggongjijinBase = value;
@@ -332,9 +329,6 @@ export default defineComponent({
         case methodType.Highest:
           form.shebaoBase = info.shebao.up;
           break;
-        case methodType.Custom:
-          form.shebaoBase = form.income;
-          break;
       }
     };
     const updategongjijinBase = () => {
@@ -342,17 +336,11 @@ export default defineComponent({
         case methodType.Income:
           form.gongjijinBase = form.income;
           break;
-        case methodType.Custom:
-          form.gongjijinBase = form.income;
-          break;
       }
     };
     const updatebuchonggongjijinBase = () => {
       switch (form.buchonggongjijinMethod.value) {
         case methodType.Income:
-          form.buchonggongjijinBase = form.income;
-          break;
-        case methodType.Custom:
           form.buchonggongjijinBase = form.income;
           break;
       }
