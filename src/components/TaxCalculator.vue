@@ -426,7 +426,7 @@ export default defineComponent({
       columns.push({
         name: '年度公积金总额（个人+公司）',
         value: 2 * 12 * (tax['基本住房公积金'] + tax['补充住房公积金']),
-      });
+      })
       columns.push({
         name: '税后月收入',
         value: (beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12,
