@@ -156,6 +156,13 @@
         type="number"
         label="其他收入"
       />
+      <q-input
+        class="col-12 col-md-4"
+        outlined
+        v-model.number="form.special"
+        type="number"
+        label="每月专项扣除总和"
+      />
     </div>
     <div class="row q-pt-sm justify-center">
       <div class="col-2 text-center">税级 {{ taxInfo.level }}</div>
@@ -191,57 +198,180 @@
         />
       </div>
     </div>
+    <div class="row q-pt-sm justify-center">
+      <q-btn color="primary" @click="info.configDialog = true">数据配置</q-btn>
+    </div>
+    <q-dialog v-model="info.configDialog">
+      <q-card style="min-width: 750px">
+        <q-tabs v-model="info.tab">
+          <q-tab name="config" label="五险一金配置" />
+          <q-tab name="tax" label="税率表" />
+        </q-tabs>
+
+        <q-tab-panels v-model="info.tab">
+          <q-tab-panel name="config">
+            <div class="row q-pt-sm justify-start q-col-gutter-sm">
+              <q-input
+                class="col-12 col-md-4"
+                outlined
+                v-model.number="info.taxFree"
+                type="number"
+                label="个税免征额"
+              />
+              <q-input
+                class="col-12 col-md-4"
+                outlined
+                v-model.number="info.shebao.up"
+                type="number"
+                label="社保上限"
+              /><q-input
+                class="col-12 col-md-4"
+                outlined
+                v-model.number="info.shebao.bottom"
+                type="number"
+                label="社保下限"
+              />
+            </div>
+            <div class="row q-pt-sm justify-start q-col-gutter-sm">
+              <q-input
+                class="col-12 col-md-4"
+                outlined
+                v-model.number="info.shebao.percent.yanglao"
+                type="number"
+                label="养老保险缴纳比例"
+              /><q-input
+                class="col-12 col-md-4"
+                outlined
+                v-model.number="info.shebao.percent.yiliao"
+                type="number"
+                label="医疗保险缴纳比例"
+              /><q-input
+                class="col-12 col-md-4"
+                outlined
+                v-model.number="info.shebao.percent.shiye"
+                type="number"
+                label="失业保险缴纳比例"
+              />
+            </div>
+            <template v-for="(value, key) in info.gongjijin" :key="value">
+              <div class="row q-pt-sm justify-start q-col-gutter-sm">
+                <q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="info.gongjijin[key].up"
+                  type="number"
+                  :label="`公积金缴存${key}%上限`"
+                /><q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="info.gongjijin[key].bottom"
+                  type="number"
+                  :label="`公积金缴存${key}%下限`"
+                />
+              </div>
+            </template>
+            <template
+              v-for="(value, key) in info.buchonggongjijin"
+              :key="value"
+            >
+              <div
+                class="row q-pt-sm justify-start q-col-gutter-sm"
+                v-if="key != 0"
+              >
+                <q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="info.buchonggongjijin[key].up"
+                  type="number"
+                  :label="`补充公积金缴存${key}%上限`"
+                /><q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="info.buchonggongjijin[key].bottom"
+                  type="number"
+                  :label="`补充公积金缴存${key}%下限`"
+                />
+              </div>
+            </template>
+          </q-tab-panel>
+          <q-tab-panel name="tax">
+            <template v-for="(item, index) in taxTable" :key="item[0]">
+              <div class="row q-pt-sm justify-start q-col-gutter-sm">
+                <q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="taxTable[index][0]"
+                  type="number"
+                  :label="`第${index + 1}级税阶上限`"
+                /><q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="taxTable[index][1]"
+                  type="number"
+                  :label="`第${index + 1}级税率`"
+                /><q-input
+                  class="col-12 col-md-4"
+                  outlined
+                  v-model.number="taxTable[index][2]"
+                  type="number"
+                  :label="`第${index + 1}级税阶速算扣除数`"
+                />
+              </div> </template
+          ></q-tab-panel>
+        </q-tab-panels>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import { reactive, computed, defineComponent, ref, watch } from 'vue';
 
-const info = {
-  shebao: {
-    bottom: 5975,
-    up: 31014,
-    percent: { yanglao: 0.08, yiliao: 0.02, shiye: 0.005 },
-  },
-  gongjijin: {
-    7: { up: 2171, bottom: 174 },
-    6: { up: 1861, bottom: 149 },
-    5: { up: 1551, bottom: 124 },
-  },
-  buchonggongjijin: {
-    5: { up: 1551, bottom: 124 },
-    4: { up: 1241, bottom: 99 },
-    3: { up: 930, bottom: 74 },
-    2: { up: 620, bottom: 50 },
-    1: { up: 310, bottom: 25 },
-    0: { up: 0, bottom: 0 },
-  },
-};
-
-const enum methodType {
-  Income,
-  Lowest,
-  Highest,
-  Custom,
-}
-
-const taxTable = [
-  [36000, 0.03, 0],
-  [144000, 0.1, 2520],
-  [300000, 0.2, 16920],
-  [420000, 0.25, 31920],
-  [660000, 0.3, 52920],
-  [960000, 0.35, 85920],
-  [1e30, 0.45, 181920],
-];
-
-const taxFree = 5000;
-
-type gongjijinKeyType = keyof typeof info.gongjijin;
-type buchonggongjijinKeyType = keyof typeof info.buchonggongjijin;
-
 export default defineComponent({
   setup() {
+    const info = reactive({
+      shebao: {
+        bottom: 5975,
+        up: 31014,
+        percent: { yanglao: 0.08, yiliao: 0.02, shiye: 0.005 },
+      },
+      gongjijin: {
+        7: { up: 2171, bottom: 174 },
+        6: { up: 1861, bottom: 149 },
+        5: { up: 1551, bottom: 124 },
+      },
+      buchonggongjijin: {
+        5: { up: 1551, bottom: 124 },
+        4: { up: 1241, bottom: 99 },
+        3: { up: 930, bottom: 74 },
+        2: { up: 620, bottom: 50 },
+        1: { up: 310, bottom: 25 },
+        0: { up: 0, bottom: 0 },
+      },
+      configDialog: false,
+      taxFree: 5000,
+      tab: 'config',
+    });
+
+    const enum methodType {
+      Income,
+      Lowest,
+      Highest,
+      Custom,
+    }
+
+    const taxTable = reactive([
+      [36000, 0.03, 0],
+      [144000, 0.1, 2520],
+      [300000, 0.2, 16920],
+      [420000, 0.25, 31920],
+      [660000, 0.3, 52920],
+      [960000, 0.35, 85920],
+      [1e30, 0.45, 181920],
+    ]);
+
+    type gongjijinKeyType = keyof typeof info.gongjijin;
+    type buchonggongjijinKeyType = keyof typeof info.buchonggongjijin;
     const CUSTOM = methodType.Custom;
     const totalSalary = computed(() => form.income * form.times);
     const totalBonus = computed(() => form.jiangjinBase * form.jiangjinMonths);
@@ -287,7 +417,8 @@ export default defineComponent({
       jiangjinBase: 0,
       hoursPerDay: 8,
       daysPerWeek: 5,
-      other: 0
+      other: 0,
+      special: 0,
     });
     const tax = reactive({
       养老保险金: 0,
@@ -300,19 +431,13 @@ export default defineComponent({
     watch(
       () => form.income,
       (value: number) => {
-        if (
-          form.shebaoMethod.value == methodType.Income
-        ) {
+        if (form.shebaoMethod.value == methodType.Income) {
           form.shebaoBase = value;
         }
-        if (
-          form.gongjijinMethod.value == methodType.Income
-        ) {
+        if (form.gongjijinMethod.value == methodType.Income) {
           form.gongjijinBase = value;
         }
-        if (
-          form.buchonggongjijinMethod.value == methodType.Income
-        ) {
+        if (form.buchonggongjijinMethod.value == methodType.Income) {
           form.buchonggongjijinBase = value;
         }
         form.jiangjinBase = value;
@@ -381,13 +506,15 @@ export default defineComponent({
         tax['失业保险金'] +
         tax['基本住房公积金'] +
         tax['补充住房公积金'] +
-        taxFree;
+        info.taxFree +
+        form.special;
 
       // 计算待缴金额
       const totalIncomeWithBonusForTax =
         totalSalary.value -
         totalExcludedPerMonth * form.times +
-        form.jiangjinBase * form.jiangjinMonths + form.other * 1;
+        form.jiangjinBase * form.jiangjinMonths +
+        form.other * 1;
       if (totalIncomeWithBonusForTax <= 0) {
         tax['年度个人所得税'] = 0;
         taxInfo.level = '-';
@@ -409,10 +536,11 @@ export default defineComponent({
       let key: keyof typeof tax;
       const socialEnsuranceAndHouseFund =
         (tax['养老保险金'] +
-        tax['医疗保险金'] +
-        tax['失业保险金'] +
-        tax['基本住房公积金'] +
-        tax['补充住房公积金']) * form.times;
+          tax['医疗保险金'] +
+          tax['失业保险金'] +
+          tax['基本住房公积金'] +
+          tax['补充住房公积金']) *
+        form.times;
       const columns = [];
       const beforeTaxIncome = totalIncome.value + form.other * 1;
       columns.push({
@@ -421,7 +549,8 @@ export default defineComponent({
       });
       columns.push({
         name: '税后年收入',
-        value: beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund,
+        value:
+          beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund,
       });
       columns.push({
         name: '年度公积金总额（个人+公司）',
@@ -429,12 +558,22 @@ export default defineComponent({
       });
       columns.push({
         name: '税后月收入',
-        value: (beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12,
+        value:
+          (beforeTaxIncome -
+            tax['年度个人所得税'] -
+            socialEnsuranceAndHouseFund) /
+          12,
       });
       columns.push({
         name: '税后时薪',
-        value: (beforeTaxIncome - tax['年度个人所得税'] - socialEnsuranceAndHouseFund) / 12 / hoursPerWeek.value / 4
-      })
+        value:
+          (beforeTaxIncome -
+            tax['年度个人所得税'] -
+            socialEnsuranceAndHouseFund) /
+          12 /
+          hoursPerWeek.value /
+          4,
+      });
       for (key in tax) {
         columns.push({
           name: key,
@@ -444,11 +583,13 @@ export default defineComponent({
       return columns;
     });
     const hoursPerWeek = computed(() => {
-      return form.hoursPerDay * form.daysPerWeek
-    })
+      return form.hoursPerDay * form.daysPerWeek;
+    });
     return {
       CUSTOM,
+      info,
       form,
+      taxTable,
       totalSalary,
       totalBonus,
       totalIncome,
