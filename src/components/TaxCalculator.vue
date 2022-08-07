@@ -169,6 +169,12 @@
       <div class="col-2 text-center">
         税率 {{ taxInfo.rate == '-' ? taxInfo.rate : `${taxInfo.rate * 100}%` }}
       </div>
+      <q-toggle
+        dense
+        :label="`年终奖${isCalcuateCombined ? '合并计税' : '分别计税'}`"
+        color="blue"
+        v-model="isCalcuateCombined"
+      />
     </div>
     <div class="row q-pt-sm justify-center">
       <div class="col-12 col-md-8">
@@ -336,16 +342,16 @@ export default defineComponent({
         percent: { yanglao: 0.08, yiliao: 0.02, shiye: 0.005 },
       },
       gongjijin: {
-        7: { up: 2171, bottom: 174 },
-        6: { up: 1861, bottom: 149 },
-        5: { up: 1551, bottom: 124 },
+        7: { up: 2393, bottom: 181 },
+        6: { up: 2051, bottom: 155 },
+        5: { up: 1709, bottom: 130 },
       },
       buchonggongjijin: {
-        5: { up: 1551, bottom: 124 },
-        4: { up: 1241, bottom: 99 },
-        3: { up: 930, bottom: 74 },
-        2: { up: 620, bottom: 50 },
-        1: { up: 310, bottom: 25 },
+        5: { up: 1709, bottom: 130 },
+        4: { up: 1368, bottom: 104 },
+        3: { up: 1026, bottom: 78 },
+        2: { up: 684, bottom: 52 },
+        1: { up: 342, bottom: 26 },
         0: { up: 0, bottom: 0 },
       },
       configDialog: false,
@@ -359,6 +365,8 @@ export default defineComponent({
       Highest,
       Custom,
     }
+
+    const isCalcuateCombined = ref(true);
 
     const taxTable = reactive([
       [36000, 0.03, 0],
@@ -420,7 +428,15 @@ export default defineComponent({
       other: 0,
       special: 0,
     });
-    const tax = reactive({
+    const taxCombined = reactive({
+      养老保险金: 0,
+      医疗保险金: 0,
+      失业保险金: 0,
+      基本住房公积金: 0,
+      补充住房公积金: 0,
+      年度个人所得税: 0,
+    });
+    const taxSeperated = reactive({
       养老保险金: 0,
       医疗保险金: 0,
       失业保险金: 0,
@@ -470,7 +486,23 @@ export default defineComponent({
           break;
       }
     };
-    const calculate = () => {
+
+    const calculateTax = (income: number) => {
+      let ret = { tax: -1, taxInfo_level: '/', taxInfo_rate: '/' };
+      for (const [index, stair] of taxTable.entries()) {
+        let [banner, rate, quickSub] = stair;
+        if (income <= banner) {
+          ret.tax = income * rate - quickSub;
+          ret.taxInfo_level = (index + 1).toString();
+          ret.taxInfo_rate = rate.toString();
+          break;
+        }
+      }
+      return ret;
+    };
+
+    const calculateCombined = () => {
+      // 合并计税
       // 调整社保基数到给定区间
       const shebaoBase = Math.max(
         Math.min(form.shebaoBase, info.shebao.up),
@@ -495,17 +527,17 @@ export default defineComponent({
       );
 
       // 计算五险一金
-      tax['养老保险金'] = shebaoBase * info.shebao.percent.yanglao;
-      tax['医疗保险金'] = shebaoBase * info.shebao.percent.yiliao;
-      tax['失业保险金'] = shebaoBase * info.shebao.percent.shiye;
-      tax['基本住房公积金'] = gongjijin;
-      tax['补充住房公积金'] = buchonggongjijin;
+      taxCombined['养老保险金'] = shebaoBase * info.shebao.percent.yanglao;
+      taxCombined['医疗保险金'] = shebaoBase * info.shebao.percent.yiliao;
+      taxCombined['失业保险金'] = shebaoBase * info.shebao.percent.shiye;
+      taxCombined['基本住房公积金'] = gongjijin;
+      taxCombined['补充住房公积金'] = buchonggongjijin;
       const totalExcludedPerMonth =
-        tax['养老保险金'] +
-        tax['医疗保险金'] +
-        tax['失业保险金'] +
-        tax['基本住房公积金'] +
-        tax['补充住房公积金'] +
+        taxCombined['养老保险金'] +
+        taxCombined['医疗保险金'] +
+        taxCombined['失业保险金'] +
+        taxCombined['基本住房公积金'] +
+        taxCombined['补充住房公积金'] +
         info.taxFree +
         form.special;
 
@@ -516,23 +548,88 @@ export default defineComponent({
         form.jiangjinBase * form.jiangjinMonths +
         form.other * 1;
       if (totalIncomeWithBonusForTax <= 0) {
-        tax['年度个人所得税'] = 0;
+        taxCombined['年度个人所得税'] = 0;
         taxInfo.level = '-';
         taxInfo.rate = '-';
         return;
       }
-      for (const [index, stair] of taxTable.entries()) {
-        let [banner, rate, quickSub] = stair;
-        if (totalIncomeWithBonusForTax <= banner) {
-          tax['年度个人所得税'] = totalIncomeWithBonusForTax * rate - quickSub;
-          taxInfo.level = (index + 1).toString();
-          taxInfo.rate = rate.toString();
-          break;
-        }
-      }
+      const result = calculateTax(totalIncomeWithBonusForTax);
+      taxCombined['年度个人所得税'] = result.tax;
+      taxInfo.level = result.taxInfo_level;
+      taxInfo.rate = result.taxInfo_rate;
     };
+    const calculateSeperated = () => {
+      // 分别计税
+      // 调整社保基数到给定区间
+      const shebaoBase = Math.max(
+        Math.min(form.shebaoBase, info.shebao.up),
+        info.shebao.bottom
+      );
+
+      // 调整公积金到给定区间
+      let gongjijin = (form.gongjijinBase * form.gongjijinPercent.value) / 100;
+      const gongjijinUp = info.gongjijin[form.gongjijinPercent.value].up;
+      const gongjijinBottom =
+        info.gongjijin[form.gongjijinPercent.value].bottom;
+      gongjijin = Math.max(Math.min(gongjijin, gongjijinUp), gongjijinBottom);
+      let buchonggongjijin =
+        (form.buchonggongjijinBase * form.buchonggongjijinPercent.value) / 100;
+      const buchonggongjijinUp =
+          info.buchonggongjijin[form.buchonggongjijinPercent.value].up,
+        buchonggongjijinBottom =
+          info.buchonggongjijin[form.buchonggongjijinPercent.value].bottom;
+      buchonggongjijin = Math.max(
+        Math.min(buchonggongjijin, buchonggongjijinUp),
+        buchonggongjijinBottom
+      );
+
+      // 计算五险一金
+      taxSeperated['养老保险金'] = shebaoBase * info.shebao.percent.yanglao;
+      taxSeperated['医疗保险金'] = shebaoBase * info.shebao.percent.yiliao;
+      taxSeperated['失业保险金'] = shebaoBase * info.shebao.percent.shiye;
+      taxSeperated['基本住房公积金'] = gongjijin;
+      taxSeperated['补充住房公积金'] = buchonggongjijin;
+      const totalExcludedPerMonth =
+        taxSeperated['养老保险金'] +
+        taxSeperated['医疗保险金'] +
+        taxSeperated['失业保险金'] +
+        taxSeperated['基本住房公积金'] +
+        taxSeperated['补充住房公积金'] +
+        info.taxFree +
+        form.special;
+
+      // 计算待缴金额
+      const totalIncomeWithBonusForTax =
+        totalSalary.value -
+        totalExcludedPerMonth * form.times +
+        // 此处不并入奖金
+        // form.jiangjinBase * form.jiangjinMonths +
+        form.other * 1;
+      // 奖金
+      const jiangjin = form.jiangjinBase * form.jiangjinMonths;
+
+      if (totalIncomeWithBonusForTax <= 0) {
+        const result = calculateTax(jiangjin);
+        taxSeperated['年度个人所得税'] = result.tax;
+        taxInfo.level = '-';
+        taxInfo.rate = '-';
+        return;
+      }
+      const result = calculateTax(totalIncomeWithBonusForTax);
+      taxSeperated['年度个人所得税'] = result.tax + calculateTax(jiangjin).tax;
+      taxInfo.level = result.taxInfo_level;
+      taxInfo.rate = result.taxInfo_rate;
+    };
+
     const taxForTable = computed(() => {
-      calculate();
+      let tax;
+      if (isCalcuateCombined.value) {
+        calculateCombined();
+        tax = taxCombined;
+      } else {
+        calculateSeperated();
+        tax = taxSeperated;
+      }
       let key: keyof typeof tax;
       const socialEnsuranceAndHouseFund =
         (tax['养老保险金'] +
@@ -576,7 +673,7 @@ export default defineComponent({
       });
       for (key in tax) {
         columns.push({
-          name: key,
+          name: (key != '年度个人所得税' ? '每月' : '') + key,
           value: tax[key],
         });
       }
@@ -596,16 +693,20 @@ export default defineComponent({
       timesOptions,
       taxForTable,
       hoursPerWeek,
-      tax,
+      taxCombined,
+      taxSeperated,
       taxInfo,
       shebaoMethodOptions,
       gongjijinMethodOptions,
       gongjijinPercentOptions,
       buchonggongjijinPercentOptions,
+      isCalcuateCombined,
       updateshebaoBase,
       updategongjijinBase,
       updatebuchonggongjijinBase,
-      calculate,
+      calculateCombined,
+      calculateSeperated,
+      calculateTax,
     };
   },
 });
