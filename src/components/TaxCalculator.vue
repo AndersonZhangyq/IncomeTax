@@ -337,8 +337,8 @@ export default defineComponent({
   setup() {
     const info = reactive({
       shebao: {
-        bottom: 5975,
-        up: 31014,
+        bottom: 6520,
+        up: 34188,
         percent: { yanglao: 0.08, yiliao: 0.02, shiye: 0.005 },
       },
       gongjijin: {
