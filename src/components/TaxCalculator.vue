@@ -337,21 +337,21 @@ export default defineComponent({
   setup() {
     const info = reactive({
       shebao: {
-        bottom: 6520,
-        up: 34188,
+        bottom: 7310,
+        up: 36549,
         percent: { yanglao: 0.08, yiliao: 0.02, shiye: 0.005 },
       },
       gongjijin: {
-        7: { up: 2393, bottom: 181 },
-        6: { up: 2051, bottom: 155 },
-        5: { up: 1709, bottom: 130 },
+        7: { up: 2558, bottom: 181 },
+        6: { up: 2193, bottom: 155 },
+        5: { up: 1827, bottom: 130 },
       },
       buchonggongjijin: {
-        5: { up: 1709, bottom: 130 },
-        4: { up: 1368, bottom: 104 },
-        3: { up: 1026, bottom: 78 },
-        2: { up: 684, bottom: 52 },
-        1: { up: 342, bottom: 26 },
+        5: { up: 1827, bottom: 130 },
+        4: { up: 1462, bottom: 104 },
+        3: { up: 1096, bottom: 78 },
+        2: { up: 731, bottom: 52 },
+        1: { up: 365, bottom: 26 },
         0: { up: 0, bottom: 0 },
       },
       configDialog: false,
