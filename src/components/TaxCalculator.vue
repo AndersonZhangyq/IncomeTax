@@ -208,7 +208,7 @@
       <q-btn color="primary" @click="info.configDialog = true">数据配置</q-btn>
     </div>
     <q-dialog v-model="info.configDialog">
-      <q-card style="min-width: 750px">
+      <q-card class="full-width" style="max-width: 900px">
         <q-tabs v-model="info.tab">
           <q-tab name="config" label="五险一金配置" />
           <q-tab name="tax" label="税率表" />
@@ -337,21 +337,21 @@ export default defineComponent({
   setup() {
     const info = reactive({
       shebao: {
-        bottom: 7384,
-        up: 36921,
+        bottom: 7460,
+        up: 37302,
         percent: { yanglao: 0.08, yiliao: 0.02, shiye: 0.005 },
       },
       gongjijin: {
-        7: { up: 5168 / 2, bottom: 376 / 2 },
-        6: { up: 4430 / 2, bottom: 322 / 2 },
-        5: { up: 3692 / 2, bottom: 270 / 2 },
+        7: { up: 5222 / 2, bottom: 376 / 2 },
+        6: { up: 4476 / 2, bottom: 322 / 2 },
+        5: { up: 3730 / 2, bottom: 270 / 2 },
       },
       buchonggongjijin: {
-        5: { up: 3692 / 2, bottom: 270 / 2 },
-        4: { up: 2954 / 2, bottom: 216 / 2 },
-        3: { up: 2216 / 2, bottom: 162 / 2 },
-        2: { up: 1476 / 2, bottom: 108 / 2 },
-        1: { up: 738 / 2, bottom: 54 / 2 },
+        5: { up: 3730 / 2, bottom: 270 / 2 },
+        4: { up: 2984 / 2, bottom: 216 / 2 },
+        3: { up: 2238 / 2, bottom: 162 / 2 },
+        2: { up: 1492 / 2, bottom: 108 / 2 },
+        1: { up: 746 / 2, bottom: 54 / 2 },
         0: { up: 0, bottom: 0 },
       },
       configDialog: false,
